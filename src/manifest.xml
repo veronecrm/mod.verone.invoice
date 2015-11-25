@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package type="module">
+
+    <!-- UID of package. -->
+    <uid>mod.verone.invoice</uid>
+    <!-- Package name. -->
+    <name>Invoice</name>
+    <!-- Package version. -->
+    <version>0.1.0</version>
+    <!-- Package release date. -->
+    <relase-date>2015.11.10</relase-date>
+    <!-- Package license. -->
+    <license>GPLv3</license>
+    <!-- Author details. -->
+    <author>
+        <name>Adam Banaszkiewicz</name>
+        <url>http://www.veronecrm.com</url>
+    </author>
+
+    <!-- Settings list. -->
+    <setting type="0" name="mod.invoice.pdf.logo"></setting>
+    <setting type="0" name="mod.invoice.sales.format">INV-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.sales.year">2000</setting>
+    <setting type="0" name="mod.invoice.sales.month">1</setting>
+    <setting type="0" name="mod.invoice.sales.number">1</setting>
+    <setting type="0" name="mod.invoice.sales.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.sales.opt.restartwithnewmonth">1</setting>
+    <setting type="0" name="mod.invoice.margin.format">MAR-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.margin.year">2000</setting>
+    <setting type="0" name="mod.invoice.margin.month">1</setting>
+    <setting type="0" name="mod.invoice.margin.number">1</setting>
+    <setting type="0" name="mod.invoice.margin.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.margin.opt.restartwithnewmonth">1</setting>
+    <setting type="0" name="mod.invoice.advance.format">ADV-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.advance.year">2000</setting>
+    <setting type="0" name="mod.invoice.advance.month">1</setting>
+    <setting type="0" name="mod.invoice.advance.number">1</setting>
+    <setting type="0" name="mod.invoice.advance.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.advance.opt.restartwithnewmonth">1</setting>
+    <setting type="0" name="mod.invoice.settlement.format">SET-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.settlement.year">2000</setting>
+    <setting type="0" name="mod.invoice.settlement.month">1</setting>
+    <setting type="0" name="mod.invoice.settlement.number">1</setting>
+    <setting type="0" name="mod.invoice.settlement.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.settlement.opt.restartwithnewmonth">1</setting>
+    <setting type="0" name="mod.invoice.proforma.format">PRO-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.proforma.year">2000</setting>
+    <setting type="0" name="mod.invoice.proforma.month">1</setting>
+    <setting type="0" name="mod.invoice.proforma.number">1</setting>
+    <setting type="0" name="mod.invoice.proforma.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.proforma.opt.restartwithnewmonth">1</setting>
+    <setting type="0" name="mod.invoice.correction.format">KOR-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.correction.year">2000</setting>
+    <setting type="0" name="mod.invoice.correction.month">1</setting>
+    <setting type="0" name="mod.invoice.correction.number">1</setting>
+    <setting type="0" name="mod.invoice.correction.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.correction.opt.restartwithnewmonth">1</setting>
+    <setting type="0" name="mod.invoice.exempt.format">EXE-%Y/%M/%N</setting>
+    <setting type="0" name="mod.invoice.exempt.year">2000</setting>
+    <setting type="0" name="mod.invoice.exempt.month">1</setting>
+    <setting type="0" name="mod.invoice.exempt.number">1</setting>
+    <setting type="0" name="mod.invoice.exempt.opt.restartwithnewyear">1</setting>
+    <setting type="0" name="mod.invoice.exempt.opt.restartwithnewmonth">1</setting>
+
+    <!-- Database queries list -->
+    <db-query type="file" scenario="install">Module/Resources/Install/sql/install-invoice.sql</db-query>
+    <db-query type="file" scenario="install">Module/Resources/Install/sql/install-invoice_product.sql</db-query>
+    <db-query type="file" scenario="uninstall">Resources/Uninstall/sql/uninstall.sql</db-query>
+
+</package>
