@@ -1,8 +1,12 @@
 # mod.verone.invoice
 ---
+
 #####  2016-01-01
+
 - Change - (veronecrm) Update file upload code to use APP.FileInput.
+
 #####  2015-12-28
+
 - Add - (veronecrm) Product Entity fields names.
 - Fix - (veronecrm) Invoice logo validation.
 - Fix - (veronecrm) Some texts in localisation.
