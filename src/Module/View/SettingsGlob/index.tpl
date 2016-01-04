@@ -1,44 +1,5 @@
 @no-extends
-<script>
-function handleFileSelect(evt) {
-    var files = evt.target.files; // FileList object
 
-    // Loop through the FileList and render image files as thumbnails.
-    for(var i = 0, f; f = files[i]; i++)
-    {
-        // Only process image files.
-        if(! f.type.match('image.*'))
-        {
-            continue;
-        }
-
-        var reader = new FileReader();
-
-        // Closure to capture the file information.
-        reader.onload = (function(theFile)
-        {
-            return function(e)
-            {
-                var img = [
-                    '<img class="img-thumbnail" style="max-height:100px" src="',
-                    e.target.result, '" title="',
-                    escape(theFile.name), '"/>'
-                ].join('');
-
-                document.getElementById('list').innerHTML = img;
-
-                document.getElementById('invoice_logo_name').value = escape(theFile.name);
-            };
-        })(f);
-
-        // Read in the image file as a data URL.
-        reader.readAsDataURL(f);
-    }
-}
-$(document).ready(function() {
-    document.getElementById('invoice_logo').addEventListener('change', handleFileSelect, false);
-});
-</script>
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
@@ -52,9 +13,9 @@ $(document).ready(function() {
                                     <label for="invoice-logo" class="control-label">{{ t('invoiceLogo') }}</label>
                                     <div class="input-group">
                                         <span class="input-group-btn">
-                                            <label class="btn btn-primary btn-file">{{ t('selectFile') }}&hellip; <input type="file" name="invoice_logo" id="invoice_logo" accept="image/*" /></label>
+                                            <label class="btn btn-primary btn-file">{{ t('selectFile') }}&hellip; <input type="file" name="invoice_logo" id="invoice-logo" accept="image/*" /></label>
                                         </span>
-                                        <input type="text" class="form-control" id="invoice_logo_name" readonly>
+                                        <input type="text" class="form-control" id="invoice-logo-name" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -406,6 +367,40 @@ $(function() {
         insertAtCursor(element, $(this).data('val'));
         element.focus();
         generateValueFromFormat();
+    });
+
+    APP.FileInput.create({
+        inputTarget: '#invoice-logo',
+        statusTarget: '#invoice-logo-name',
+        onChange: function(files) {
+            for(var i = 0, f; f = files[i]; i++)
+            {
+                if(! f.type.match('image.*'))
+                {
+                    continue;
+                }
+
+                var reader = new FileReader();
+
+                reader.onload = (function(theFile)
+                {
+                    return function(e)
+                    {
+                        var img = [
+                            '<img class="img-thumbnail" style="max-height:100px" src="',
+                            e.target.result,
+                            '" title="',
+                            escape(theFile.name),
+                            '"/>'
+                        ].join('');
+
+                        document.getElementById('list').innerHTML = img;
+                    };
+                })(f);
+
+                reader.readAsDataURL(f);
+            }
+        }
     });
 });
 

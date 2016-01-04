@@ -2,13 +2,14 @@
 /**
  * Verone CRM | http://www.veronecrm.com
  *
- * @copyright  Copyright (C) 2015 Adam Banaszkiewicz
+ * @copyright  Copyright (C) 2015 - 2016 Adam Banaszkiewicz
  * @license    GNU General Public License version 3; see license.txt
  */
 
 namespace App\Module\Invoice\ORM;
 
 use CRM\ORM\Repository;
+use CRM\ORM\Entity;
 
 class ProductRepository extends Repository
 {
@@ -23,13 +24,14 @@ class ProductRepository extends Repository
     {
         foreach($this->findAllByInvoice($id) as $product)
         {
-                $this->delete($product);
+            $this->delete($product);
         }
     }
 
     public function copyProducts($from, $to)
     {
         $products = $this->findAll('invoiceId = :invoiceId AND `current` = 1', [ ':invoiceId' => $from ]);
+        $newProducts = [];
 
         foreach($products as $product)
         {
@@ -37,8 +39,12 @@ class ProductRepository extends Repository
             $product->setId(null);
             $product->setInvoiceId($to);
 
+            $newProducts[] = $product;
+
             $this->save($product);
         }
+
+        return $newProducts;
     }
 
     public function changeCurrentProducts($invoiceId)
@@ -57,5 +63,34 @@ class ProductRepository extends Repository
         }
 
         return $result;
+    }
+
+    public function getFieldsNames()
+    {
+        return [
+            'id'            => 'ID',
+            'invoiceId'     => $this->t('invoiceId'),
+            'productId'     => $this->t('invoiceProductId'),
+            'createDate'    => $this->t('invoiceCreateDate'),
+            'name'          => $this->t('invoiceProductName'),
+            'unitPriceNet'  => $this->t('invoiceUnitPriceNet'),
+            'qty'           => $this->t('invoiceQuantity'),
+            'tax'           => $this->t('invoiceTaxRate'),
+            'unit'          => $this->t('invoiceMeasureUnit'),
+            'discount'      => $this->t('invoiceDiscount'),
+            'comment'       => $this->t('invoiceComment')
+        ];
+    }
+
+    public function getEndValue(Entity $entity, $field)
+    {
+        switch($field)
+        {
+            case 'createDate': return date('Y-m-d', $entity->getCreateDate()); break;
+            case 'discount':   return $entity->getDiscount().' %'; break;
+            case 'tax':        return $entity->getTax().' %'; break;
+        }
+
+        return parent::getEndValue($entity, $field);
     }
 }

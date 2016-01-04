@@ -2,7 +2,7 @@
 /**
  * Verone CRM | http://www.veronecrm.com
  *
- * @copyright  Copyright (C) 2015 Adam Banaszkiewicz
+ * @copyright  Copyright (C) 2015 - 2016 Adam Banaszkiewicz
  * @license    GNU General Public License version 3; see license.txt
  */
 
@@ -92,25 +92,38 @@ class SettingsGlob extends Plugin
         {
             if(is_uploaded_file($_FILES['invoice_logo']['tmp_name']))
             {
-                $ext  = pathinfo($_FILES['invoice_logo']['name'], PATHINFO_EXTENSION);
-                $name = 'logo.'.$ext;
+                list($width, $height) = getimagesize($_FILES['invoice_logo']['tmp_name']);
 
-                if(is_file(BASEPATH.'/web/modules/Invoice/'.$name))
+                if($width == 0 || $height == 0)
                 {
-                    $logger->appendPreValue('mod.invoice.pdf.logo', md5_file(BASEPATH.'/web/modules/Invoice/'.$name));
-
-                    unlink(BASEPATH.'/web/modules/Invoice/'.$name);
+                    $this->flash('warning', $this->t('invoiceUploadedFileIsntImage'));
+                }
+                elseif($width > 300 || $height > 300)
+                {
+                    $this->flash('warning', $this->t('invoiceMaxImageSizesRestriction'));
                 }
                 else
                 {
-                    $logger->appendPreValue('mod.invoice.pdf.logo', '');
+                    $ext  = pathinfo($_FILES['invoice_logo']['name'], PATHINFO_EXTENSION);
+                    $name = 'logo.'.$ext;
+
+                    if(is_file(BASEPATH.'/web/modules/Invoice/'.$name))
+                    {
+                        $logger->appendPreValue('mod.invoice.pdf.logo', md5_file(BASEPATH.'/web/modules/Invoice/'.$name));
+
+                        unlink(BASEPATH.'/web/modules/Invoice/'.$name);
+                    }
+                    else
+                    {
+                        $logger->appendPreValue('mod.invoice.pdf.logo', '');
+                    }
+
+                    move_uploaded_file($_FILES['invoice_logo']['tmp_name'], BASEPATH.'/web/modules/Invoice/'.$name);
+
+                    $app->set('mod.invoice.pdf.logo', $name);
+
+                    $logger->appendPostValue('mod.invoice.pdf.logo', md5_file(BASEPATH.'/web/modules/Invoice/'.$name));
                 }
-
-                move_uploaded_file($_FILES['invoice_logo']['tmp_name'], BASEPATH.'/web/modules/Invoice/'.$name);
-
-                $app->set('mod.invoice.pdf.logo', $name);
-
-                $logger->appendPostValue('mod.invoice.pdf.logo', md5_file(BASEPATH.'/web/modules/Invoice/'.$name));
             }
         }
 

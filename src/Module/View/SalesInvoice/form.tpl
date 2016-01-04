@@ -7,13 +7,14 @@
 
     .products-list .item {margin-bottom:5px;}
     .products-list .item:after {display:table;clear:both;content:" ";}
-    .products-list .item .hl {display:block;background-color:#0088CC;width:100%;padding:5px 5px;}
+    .products-list .item .hl {display:block;background-color:#0088CC;width:100%;padding:5px 5px 5px 10px;border-radius:2px;}
     .products-list .item .hl:after {display:table;clear:both;content:" ";}
     .products-list .item .hl:hover {cursor:pointer;}
     .products-list .item .hl h1 {font-size:14px;text-transform:uppercase;font-weight:normal;color:#fff;float:left;margin:0;padding:4px 0;}
     .products-list .item .hl button {float:right;}
-    .products-list .item .cnt {display:none;padding:5px 15px 0;}
-    .products-list .item.opened .cnt {display:block;}
+    .products-list .item .cnt {display:none;padding:0 12px 7px;}
+    .products-list .item.opened .hl {border-radius:2px 2px 0 0}
+    .products-list .item.opened .cnt {display:block;border:1px solid #0088CC;border-top:none;border-radius:0 0 2px 2px;}
 
     .invoice-preview {max-width:800px;padding:20px;border:1px solid #ddd;box-shadow:0 0 5px rgba(0,0,0,.3);}
     .invoice-preview table {width:100%;border-spacing:0;margin:0 0 20px 0;padding:0;border-collapse:collapse;}
@@ -291,9 +292,10 @@
                                                     <div class="products-list">
                                                         @foreach $products
                                                             <div class="item">
-                                                                <input type="hidden" id="patt_product_id" class="patt-product-id" name="product[{{ $item->getId() }}][id]" value="{{ $item->getId() }}" />
-                                                                <input type="hidden" id="patt_product_unit" class="patt-product-unit" name="product[{{ $item->getId() }}][unit]" value="{{ $item->getUnit() }}" />
-                                                                <input type="hidden" id="patt_product_name" class="patt-product-name" name="product[{{ $item->getId() }}][name]" value="{{ $item->getName() }}" />
+                                                                <input type="hidden" id="product_{{ $item->getId() }}_id" class="patt-product-id" name="product[{{ $item->getId() }}][id]" value="{{ $item->getId() }}" />
+                                                                <input type="hidden" id="product_{{ $item->getId() }}_product_id" class="patt-product-product-id" name="product[{{ $item->getId() }}][productId]" value="{{ $item->getProductId() }}" />
+                                                                <input type="hidden" id="product_{{ $item->getId() }}_unit" class="patt-product-unit" name="product[{{ $item->getId() }}][unit]" value="{{ $item->getUnit() }}" />
+                                                                <input type="hidden" id="product_{{ $item->getId() }}_name" class="patt-product-name" name="product[{{ $item->getId() }}][name]" value="{{ $item->getName() }}" />
                                                                 <div class="hl">
                                                                     <h1>{{ $item->getName() }}</h1>
                                                                     <button type="button" class="btn btn-xs btn-danger"><i class="fa fa-remove"></i></button>
@@ -303,35 +305,35 @@
                                                                         <div class="row">
                                                                             <div class="col-md-6">
                                                                                 <div class="form-group">
-                                                                                    <label for="patt_product_unitPriceNet" class="control-label">{{ t('invoiceUnitPriceNet') }}</label>
+                                                                                    <label for="product_{{ $item->getId() }}_unitPriceNett" class="control-label">{{ t('invoiceUnitPriceNet') }}</label>
                                                                                     <div class="input-group">
-                                                                                        <input class="form-control patt-product-unitPriceNet" type="text" id="patt_product_unitPriceNet" name="product[{{ $item->getId() }}][unitPriceNet]" value="{{ $item->getUnitPriceNet() }}" />
+                                                                                        <input class="form-control patt-product-unitPriceNet" type="text" id="product_{{ $item->getId() }}_unitPriceNett" name="product[{{ $item->getId() }}][unitPriceNet]" value="{{ $item->getUnitPriceNet() }}" />
                                                                                         <span class="input-group-addon calendar-open">{{ $app->get('helper.currency')->getDefault()->symbol }}</span>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="form-group">
-                                                                                    <label for="patt_product_tax" class="control-label">{{ t('invoiceTaxValue') }}</label>
+                                                                                    <label for="product_{{ $item->getId() }}_tax" class="control-label">{{ t('invoiceTaxValue') }}</label>
                                                                                     <div class="input-group">
-                                                                                        <input class="form-control patt-product-tax" type="text" id="patt_product_tax" name="product[{{ $item->getId() }}][tax]" value="{{ $item->getTax() }}" />
+                                                                                        <input class="form-control patt-product-tax" type="text" id="product_{{ $item->getId() }}_tax" name="product[{{ $item->getId() }}][tax]" value="{{ $item->getTax() }}" />
                                                                                         <span class="input-group-addon calendar-open">%</span>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="form-group">
-                                                                                    <label for="patt_product_discount" class="control-label">{{ t('invoiceDiscount') }}</label>
+                                                                                    <label for="product_{{ $item->getId() }}_discount" class="control-label">{{ t('invoiceDiscount') }}</label>
                                                                                     <div class="input-group">
-                                                                                        <input class="form-control patt-product-discount" type="text" id="patt_product_discount" name="product[{{ $item->getId() }}][discount]" value="{{ $item->getDiscount() }}" />
+                                                                                        <input class="form-control patt-product-discount" type="text" id="product_{{ $item->getId() }}_discount" name="product[{{ $item->getId() }}][discount]" value="{{ $item->getDiscount() }}" />
                                                                                         <span class="input-group-addon calendar-open">%</span>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-md-6">
                                                                                 <div class="form-group">
-                                                                                    <label for="patt_product_qty" class="control-label">{{ t('invoiceQuantity') }}</label>
-                                                                                    <input class="form-control patt-product-qty" type="text" id="patt_product_qty" name="product[{{ $item->getId() }}][qty]" value="{{ $item->getQty() }}" />
+                                                                                    <label for="product_{{ $item->getId() }}_qty" class="control-label">{{ t('invoiceQuantity') }}</label>
+                                                                                    <input class="form-control patt-product-qty" type="text" id="product_{{ $item->getId() }}_qty" name="product[{{ $item->getId() }}][qty]" value="{{ $item->getQty() }}" />
                                                                                 </div>
                                                                                 <div class="form-group">
-                                                                                    <label for="patt_product_comment" class="control-label">{{ t('invoiceComment') }}</label>
-                                                                                    <textarea class="form-control patt-product-comment auto-grow" id="patt_product_comment" name="product[{{ $item->getId() }}][comment]">{{ $item->getComment() }}</textarea>
+                                                                                    <label for="product_{{ $item->getId() }}_comment" class="control-label">{{ t('invoiceComment') }}</label>
+                                                                                    <textarea class="form-control patt-product-comment auto-grow" id="product_{{ $item->getId() }}_comment" name="product[{{ $item->getId() }}][comment]">{{ $item->getComment() }}</textarea>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -460,6 +462,7 @@
 <div id="product-list-item-pattern" style="display:none">
     <div class="item">
         <input type="hidden" id="patt_product_id" class="patt-product-id" name="patt_product_id" />
+        <input type="hidden" id="patt_product_product_id" class="patt-product-product-id" name="patt_product_product_id" />
         <input type="hidden" id="patt_product_unit" class="patt-product-unit" name="patt_product_unit" />
         <input type="hidden" id="patt_product_name" class="patt-product-name" name="patt_product_name" />
         <div class="hl">
@@ -557,7 +560,7 @@
 
         currentStep = step;
         resetSteps();
-        $('.step-out').eq(currentStep).show();
+        $('.step-out').eq(currentStep).show().find('.auto-grow').trigger('autogrow.update');
         $('.invoice-wizard .nav-tabs li').eq(currentStep).addClass('active');
     };
 
@@ -913,71 +916,81 @@
                     afterSelect: function(item) {
                         inputSearchProduct.val('');
 
+                        var inputNextIndex = (new Date).getTime();
                         var patt = $('#product-list-item-pattern .item').clone();
 
                         patt.find('h1').text(item.name);
 
                         patt
                             .find('#patt_product_id')
+                            .val('')
+                            .attr('name', 'product[' + inputNextIndex + '][id]');
+
+                        patt
+                            .find('#patt_product_product_id')
                             .val(item.id)
-                            .attr('name', 'product[' + item.id + '][id]');
+                            .attr('name', 'product[' + inputNextIndex + '][productId]');
 
                         patt
                             .find('#patt_product_unit')
                             .val(item.unit.unit ? item.unit.unit : '')
-                            .attr('name', 'product[' + item.id + '][unit]');
+                            .attr('name', 'product[' + inputNextIndex + '][unit]');
 
                         patt
                             .find('#patt_product_name')
                             .val(item.name ? item.name : '')
-                            .attr('name', 'product[' + item.id + '][name]');
+                            .attr('name', 'product[' + inputNextIndex + '][name]');
 
                         patt
                             .find('#patt_product_unitPriceNet')
                             .val(item.price)
-                            .attr('name', 'product[' + item.id + '][unitPriceNet]')
-                            .attr('id', 'product_' + item.id + '_unitPriceNet')
+                            .attr('name', 'product[' + inputNextIndex + '][unitPriceNet]')
+                            .attr('id', 'product_' + inputNextIndex + '_unitPriceNet')
+                            .parent()
                             .parent()
                             .find('label')
-                            .attr('for', 'product_' + item.id + '_unitPriceNet');
+                            .attr('for', 'product_' + inputNextIndex + '_unitPriceNet');
 
                         patt
                             .find('#patt_product_tax')
                             .val(item.tax.rate ? item.tax.rate : 0)
-                            .attr('name', 'product[' + item.id + '][tax]')
-                            .attr('id', 'product_' + item.id + '_tax')
+                            .attr('name', 'product[' + inputNextIndex + '][tax]')
+                            .attr('id', 'product_' + inputNextIndex + '_tax')
+                            .parent()
                             .parent()
                             .find('label')
-                            .attr('for', 'product_' + item.id + '_tax');
+                            .attr('for', 'product_' + inputNextIndex + '_tax');
 
                         patt
                             .find('#patt_product_qty')
                             .val(1)
-                            .attr('name', 'product[' + item.id + '][qty]')
-                            .attr('id', 'product_' + item.id + '_qty')
+                            .attr('name', 'product[' + inputNextIndex + '][qty]')
+                            .attr('id', 'product_' + inputNextIndex + '_qty')
                             .parent()
                             .find('label')
-                            .attr('for', 'product_' + item.id + '_qty');
+                            .attr('for', 'product_' + inputNextIndex + '_qty');
 
                         patt
                             .find('#patt_product_comment')
-                            .attr('name', 'product[' + item.id + '][comment]')
-                            .attr('id', 'product_' + item.id + '_comment')
+                            .attr('name', 'product[' + inputNextIndex + '][comment]')
+                            .attr('id', 'product_' + inputNextIndex + '_comment')
                             .parent()
                             .find('label')
-                            .attr('for', 'product_' + item.id + '_comment');
+                            .attr('for', 'product_' + inputNextIndex + '_comment');
 
                         patt
                             .find('#patt_product_discount')
-                            .attr('name', 'product[' + item.id + '][discount]')
-                            .attr('id', 'product_' + item.id + '_discount')
+                            .attr('name', 'product[' + inputNextIndex + '][discount]')
+                            .attr('id', 'product_' + inputNextIndex + '_discount')
+                            .parent()
                             .parent()
                             .find('label')
-                            .attr('for', 'product_' + item.id + '_discount');
+                            .attr('for', 'product_' + inputNextIndex + '_discount');
 
                         patt.appendTo('.step-products .products-list');
 
                         $('.step-products .products-list .item').removeClass('opened').eq(-1).addClass('opened');
+                        applyTextareaAutoGrow('.products-list .item.opened .auto-grow');
                     }
                 })
                 .parent()
@@ -994,6 +1007,7 @@
         $('.products-list').delegate('.item .hl', 'click', function() {
             $('.products-list .item').removeClass('opened');
             $(this).parent().addClass('opened');
+            applyTextareaAutoGrow('.products-list .item.opened .auto-grow');
         });
 
         $('.payment-date-calendar a').click(function() {

@@ -2,7 +2,7 @@
 /**
  * Verone CRM | http://www.veronecrm.com
  *
- * @copyright  Copyright (C) 2015 Adam Banaszkiewicz
+ * @copyright  Copyright (C) 2015 - 2016 Adam Banaszkiewicz
  * @license    GNU General Public License version 3; see license.txt
  */
 
@@ -82,16 +82,20 @@ class ProformaInvoice extends BaseController
 
         $this->repo('Invoice')->save($invoice);
 
+        $log = $this->openUserHistory($invoice);
+        $log->flush('create', $this->t('invoice'));
+
+        $changeId = $log->getChangeId();
+
         foreach($products as $product)
         {
             $product->setInvoiceId($invoice->getId());
             $this->repo('Product')->save($product);
-        }
 
-        /**
-         * @todo User History
-         * $this->openUserHistory($invoice)->flush('create', $this->t('invoice'));
-         */
+            $productLog = $this->openUserHistory($product);
+            $productLog->relatedWith($changeId);
+            $productLog->flush('create', $this->t('invoiceProduct'));
+        }
 
         $this->flash('success', $this->t('invoiceSaved'));
 
@@ -133,61 +137,148 @@ class ProformaInvoice extends BaseController
             return $this->redirect('Invoice', 'Invoice', 'index');
         }
 
+        $invoiceLog = $this->openUserHistory($invoice);
+
         $invoice->fillFromRequest($request);
         $invoice->setModified(time());
+
+        $productsAddDate = time();
+        $productRepo = $this->repo('Product');
+
+        // Products, in current Invoice state.
+        $currentProducts = $productRepo->findAllByInvoice($invoice->getId());
+        // Products from Request, new Invoice state.
+        $newProducts = (array) $request->request->get('product');
+        // Products Entities, for new Infoce state.
+        $products = [];
+
+        /**
+         * First, find and update existing products in DB and in Request.
+         */
+        foreach($newProducts as $newKey => $newProduct)
+        {
+            foreach($currentProducts as $currentKey => $currentProduct)
+            {
+                if($newProduct['id'] == $currentProduct->getId())
+                {
+                    $discount = abs((float) $newProduct['discount']);
+                    $tax      = abs((float) $newProduct['tax']);
+                    $qty      = abs((float) $newProduct['qty']);
+                    $nett     = (float) $newProduct['unitPriceNet'];
+
+                    /**
+                     * We shouldn't do this like this, but in that way
+                     * we can write veeery less code, tha t in right way.
+                     * Open product EntityLog and save that object to product
+                     * property, to use during product save.
+                     */
+                    $currentProduct->entityLog = $this->openUserHistory($currentProduct);
+
+                    $currentProduct->setProductId($newProduct['productId']);
+                    $currentProduct->setName($newProduct['name']);
+                    $currentProduct->setUnitPriceNet($nett);
+                    $currentProduct->setQty($qty);
+                    $currentProduct->setTax($tax);
+                    $currentProduct->setUnit($newProduct['unit']);
+                    $currentProduct->setDiscount($discount);
+                    $currentProduct->setComment($newProduct['comment']);
+                    $currentProduct->setCurrent(1);
+
+                    $products[] = clone $currentProduct;
+
+                    unset($newProducts[$newKey]);
+                    unset($currentProducts[$currentKey]);
+                }
+            }
+        }
+
+        /**
+         * Second, add new products, that exists in Request, but not in DB.
+         */
+        foreach($newProducts as $newKey => $newProduct)
+        {
+            $discount = abs((float) $newProduct['discount']);
+            $tax      = abs((float) $newProduct['tax']);
+            $qty      = abs((float) $newProduct['qty']);
+            $nett     = (float) $newProduct['unitPriceNet'];
+
+            $prod = $this->entity('Product');
+            $prod->setCreateDate($productsAddDate);
+            $prod->setProductId($newProduct['productId']);
+            $prod->setName($newProduct['name']);
+            $prod->setUnitPriceNet($nett);
+            $prod->setQty($qty);
+            $prod->setTax($tax);
+            $prod->setUnit($newProduct['unit']);
+            $prod->setDiscount($discount);
+            $prod->setComment($newProduct['comment']);
+            $prod->setCurrent(1);
+
+            $products[] = $prod;
+        }
+
+        /**
+         * Last, remove products from DB, that left.
+         */
+        foreach($currentProducts as $currentProduct)
+        {
+            $currentProduct->entityLog = $this->openUserHistory($currentProduct);
+            $productRepo->delete($currentProduct);
+        }
 
         $totalSumNet   = 0;
         $totalSumGross = 0;
 
-        // First, remove old products
-        $this->repo('Product')->removeAllByInvoice($invoice->getId());
-
-        $products = [];
-        $productsAddDate = time();
-
-        foreach((array) $request->request->get('product') as $product)
+        foreach($products as $product)
         {
-            $discount = abs((float) $product['discount']);
-            $tax      = abs((float) $product['tax']);
-            $qty      = abs((float) $product['qty']);
-            $nett     = (float) $product['unitPriceNet'];
+            $discount = $product->getDiscount();
+            $tax      = $product->getTax();
+            $qty      = $product->getQty();
+            $nett     = $product->getUnitPriceNet();
 
             $nettWithDiscount = $discount ? ($nett - ($nett * ($discount / 100))) : $nett;
             $gross            = $nettWithDiscount + ($nettWithDiscount * ($tax / 100));
 
-            $totalSumNet    += ($nettWithDiscount * $qty);
-            $totalSumGross  += ($gross * $qty);
-
-            $prod = $this->entity('Product');
-            $prod->setCreateDate($productsAddDate);
-            $prod->setProductId($product['id']);
-            $prod->setName($product['name']);
-            $prod->setUnitPriceNet($nett);
-            $prod->setQty($qty);
-            $prod->setTax($tax);
-            $prod->setUnit($product['unit']);
-            $prod->setDiscount($discount);
-            $prod->setComment($product['comment']);
-            $prod->setCurrent(1);
-
-            $products[] = $prod;
+            $totalSumNet   += ($nettWithDiscount * $qty);
+            $totalSumGross += ($gross * $qty);
         }
 
         $invoice->setValueNett(round($totalSumNet, 2));
         $invoice->setValueGross(round($totalSumGross, 2));
 
         $this->repo('Invoice')->save($invoice);
+        $invoiceLog->flush('change', $this->t('invoice'));
+
+        $changeId = $invoiceLog->getChangeId();
 
         foreach($products as $product)
         {
             $product->setInvoiceId($invoice->getId());
-            $this->repo('Product')->save($product);
+            $isNew = $product->isNew;
+
+            $productRepo->save($product);
+
+            if($isNew)
+            {
+                $productLog = $this->openUserHistory($product);
+                $productLog->relatedWith($changeId);
+                $productLog->flush('create', $this->t('invoiceProduct'));
+            }
+            else
+            {
+                $product->entityLog->relatedWith($changeId);
+                $product->entityLog->flush('change', $this->t('invoiceProduct'));
+            }
         }
 
         /**
-         * @todo User History
-         * $this->openUserHistory($invoice)->flush('create', $this->t('invoice'));
+         * Log for removed products.
          */
+        foreach($currentProducts as $currentProduct)
+        {
+            $currentProduct->entityLog->relatedWith($changeId);
+            $currentProduct->entityLog->flush('delete', $this->t('invoiceProduct'));
+        }
 
         $this->flash('success', $this->t('invoiceUpdated'));
 
@@ -226,18 +317,23 @@ class ProformaInvoice extends BaseController
 
         $this->repo('Invoice')->save($invoice);
 
-        $this->repo('Product')->copyProducts($request->query->get('id'), $invoice->getId());
+        $products = $this->repo('Product')->copyProducts($request->query->get('id'), $invoice->getId());
 
-        $this->openUserHistory($invoice)->flush('create', $this->t('invoice'));
+        $invoiceLog = $this->openUserHistory($invoice);
+        $invoiceLog->flush('create', $this->t('invoice'));
+        $changeId = $invoiceLog->getChangeId();
+
+        foreach($products as $product)
+        {
+            $entityLog = $this->openUserHistory($product);
+            $entityLog->relatedWith($changeId);
+            $entityLog->flush('create', $this->t('invoiceProduct'));
+        }
 
         if($request->query->get('to') == 'SalesInvoice')
-        {
             $this->flash('success', sprintf($this->t('invoiceProformaConvertedToSalesInvoice'), $invoice->getNumber(), $currentNumber));
-        }
         else
-        {
             $this->flash('success', sprintf($this->t('invoiceDuplicatedWithNewNumber'), $invoice->getNumber()));
-        }
 
         return $this->redirect('Invoice', 'Invoice', 'index');
     }
@@ -255,7 +351,22 @@ class ProformaInvoice extends BaseController
             return $this->redirect('Invoice', 'Invoice', 'index');
         }
 
-        $this->repo('Product')->removeAllByInvoice($invoice->getId());
+        $log = $this->openUserHistory($invoice);
+        $log->flush('delete', $this->t('invoice'));
+        $changeId = $log->getChangeId();
+
+        $productRepo = $this->repo('Product');
+        $currentProducts = $productRepo->findAllByInvoice($invoice->getId());
+
+        foreach($currentProducts as $product)
+        {
+            $entityLog = $this->openUserHistory($product);
+            $entityLog->relatedWith($changeId);
+            $entityLog->flush('delete', $this->t('invoiceProduct'));
+
+            $productRepo->delete($product);
+        }
+
         $this->repo('Invoice')->delete($invoice);
 
         $this->flash('success', $this->t('invoiceRemoved'));
